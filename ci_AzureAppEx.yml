@@ -1,0 +1,44 @@
+trigger:
+- develop
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  dockerRegistryServiceConnection: 'AcrDockerConnection'
+  imageRepository: 'tech-challenge-contact'
+  containerRegistry: 'postech.azurecr.io'
+  dockerfilePath: 'Dockerfile'
+  tag: '$(Build.BuildId)'
+  imageToDeploy: '$(containerRegistry)/$(imageRepository):$(tag)'
+
+stages:
+  - stage: 'Development'
+    jobs:
+    - job: 'DeployToAzure'
+      pool:
+        vmImage: 'ubuntu-latest'
+      steps:
+      # Deploy to Azure Container Apps using Azure CLI
+      - task: AzureContainerApps@1
+        displayName: 'Deployment Azure Container Apps'
+        inputs:
+          appSourcePath: '.'
+          azureSubscription: 'Pago pelo Uso(b4b453d5-839d-496b-a890-bafff37c5d56)'
+          acrName: 'postech'
+          imageToBuild: '$(imageToDeploy)'
+          containerAppName: 'postech-fiap'
+          resourceGroup: 'postech'
+          targetPort: '8080'
+
+  - stage: 'Staging'
+    displayName: 'Staging'
+    jobs:
+    - job: 'EchoMessage'
+      pool:
+        vmImage: 'ubuntu-latest'
+      steps:
+      # Echo Message
+      - script: |
+          echo "This is the Staging stage."
+        displayName: 'Echo Staging Message'
