@@ -1,9 +1,40 @@
+version: '3.7'
 services:
-  sqlserver:
-    container_name: sqlserver
-    image: mcr.microsoft.com/mssql/server:2022-latest
+  sqlserver:  # Define o serviço SQL Server
+    container_name: sqlserver  # Nome do contêiner Docker para facilitar a identificação
+    image: mcr.microsoft.com/mssql/server:2022-latest  # Imagem Docker do SQL Server 2022
     ports:
-      - "1433:1433"
+      - "1433:1433"  # Mapeia a porta 1433 do contêiner para a porta 1433 do host
+    environment:  # Define variáveis de ambiente para o contêiner
+      SA_PASSWORD: "MyPassword@123"  # Senha do administrador do SQL Server
+      ACCEPT_EULA: "Y"  # Aceita os termos de licença do SQL Server
+
+  prometheus:  # Define o serviço Prometheus
+    image: prom/prometheus  # Imagem Docker do Prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml  # Monta o arquivo de configuração do Prometheus
+    ports:
+      - "9090:9090"  # Mapeia a porta 9090 do contêiner para a porta 9090 do host
+
+  grafana:  # Define o serviço Grafana
+    image: grafana/grafana  # Imagem Docker do Grafana
+    ports:
+      - "3000:3000"  # Mapeia a porta 3000 do contêiner para a porta 3000 do host
     environment:
-      SA_PASSWORD: "MyPassword@123"
-      ACCEPT_EULA: "Y"
+      - GF_SECURITY_ADMIN_PASSWORD=admin  # Define a senha do administrador do Grafana
+    volumes:
+      - grafana-storage:/var/lib/grafana  # Volume persistente para armazenar dados do Grafana
+
+  webapi:  # Define o serviço da aplicação .NET
+    build: .
+    ports:
+      - "8080:8080" # Mapeia a porta 80 do contêiner para a porta 8080 do host
+      - "8081:8081" 
+    depends_on:
+      - sqlserver  # Define a dependência do SQL Server para que ele inicie antes da aplicação
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development  # Define o ambiente de execução da aplicação
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=TechChallenge1;User ID=sa;Password=MyPassword@123;Trusted_Connection=False; TrustServerCertificate=True;"
+
+volumes:
+  grafana-storage:  # Declara um volume nomeado para o Grafana
