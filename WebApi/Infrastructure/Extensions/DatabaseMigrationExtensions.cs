@@ -4,13 +4,13 @@ namespace WebApi.Infrastructure.Extensions;
 
 public static class DatabaseMigrationExtensions
 {
-    public static async Task<IApplicationBuilder> MigrateDatabaseAsync(this IApplicationBuilder app)
+    public static IApplicationBuilder MigrateDatabase(this IApplicationBuilder app)
     {
         using (var scope = app.ApplicationServices.CreateScope())
         {
             var services = scope.ServiceProvider;
             var dbContext = services.GetRequiredService<TechChallenge1DbContext>();
-            await dbContext.MigrateAsync();
+            Task.WaitAll(dbContext.MigrateAsync());
         }
 
         return app;

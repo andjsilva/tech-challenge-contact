@@ -1,5 +1,6 @@
 
 using Prometheus;
+using WebApi.Infrastructure.Extensions;
 
 namespace WebApi.Extensions
 {
@@ -12,6 +13,7 @@ namespace WebApi.Extensions
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+            app.MigrateDatabase();
 
             app.UseHttpsRedirection();
             app.UseAuthentication();  
